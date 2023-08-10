@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.linalg import block_diag
 
 # Define kernel functions
 def epanechnikov_kernel(x):
@@ -12,9 +13,10 @@ def triangle_kernel(x):
 
 # Local polynomial estimation
 def local_polynomial_regression(data, kernel_type, bandwidth, degree, x0):
-    x = data[:, 0]
-    y = data[:, 1]
-    n = len(x)
+    x = data[:, :-1]
+    y = data[:, -1]
+    n = len(y)
+    p = x.shape[1]
     
     if kernel_type == 'epa':
         kernel = epanechnikov_kernel
@@ -25,14 +27,12 @@ def local_polynomial_regression(data, kernel_type, bandwidth, degree, x0):
     else:
         raise ValueError('Unsupported kernel type')
     
-    beta_hat = np.zeros((degree + 1,len(x0)))
-    for i in range(len(x0)):
-        X = np.fliplr(np.vander(x-x0[i], degree + 1))
-        W = np.diag(kernel((x0[i] - x) / bandwidth))
-        beta_hat[:,i] = np.linalg.inv(X.T @ W @ X) @ X.T @ W @ y
+    X = np.ones((n, 1))
+    for i in range(1, degree + 1):
+        for j in range(p):
+            X = np.hstack((X, (x[:, j] - x0[j])**i))
     
-    return beta_hat
-
-# Loss function of partial linear single index model
-def loss_plsim(data, kernel_type, bandwidth, degree):
+    W = block_diag(*[kernel(np.linalg.norm((x[i] - x0) / bandwidth)) for i in range(n)])
+    beta_hat = np.linalg.inv(X.T @ W @ X) @ X.T @ W @ y
     
+    return beta_hat[-1]
