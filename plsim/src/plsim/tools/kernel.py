@@ -51,7 +51,6 @@ def local_polynomial_regression(data, kernel_type, bandwidth, degree, x0):
     return np.array(beta_hat)
 
 
-
 # Loss function of partial linear single index model: y = \eta(\beta^T x) + \theta^T Z + \epsilon 
 def loss_plsim(data, kernel_type, bandwidth, degree, beta, theta):
     # data should be in the form of (x,z,y), where x is the non-parametric one, z is the linear one, and y is the response
@@ -72,3 +71,35 @@ def loss_plsim(data, kernel_type, bandwidth, degree, beta, theta):
     loss = np.sum((y - eta_hat - theta.T @ z.T) ** 2)
 
     return loss
+
+# Profile least sequare estimation
+from scipy.optimize import minimize
+
+def optimize_plsim(data, kernel_type, bandwidth, degree):
+    # define the objective function
+    def objective(params):
+        beta = params[:data['x'].shape[1]]
+        theta = params[data['x'].shape[1]:]
+        loss = loss_plsim(data, kernel_type, bandwidth, degree, beta, theta)
+        return loss
+    
+    # define the initial values for beta and theta
+    beta_init = np.zeros(data['x'].shape[1])
+    theta_init = np.zeros(data['z'].shape[1])
+    params_init = np.concatenate((beta_init, theta_init))
+
+    # minimize the objective function
+    res = minimize(objective, params_init, args=(data, kernel_type, bandwidth, degree)) 
+
+    # extract the optimal values for beta and theta
+    beta_opt = res.x[:data['x'].shape[1]]
+    theta_opt = res.x[data['x'].shape[1]:]
+    
+    return beta_opt, theta_opt
+
+
+
+
+
+
+
