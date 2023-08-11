@@ -1,5 +1,6 @@
+
 import numpy as np
-from scipy.linalg import block_diag
+
 
 # Define kernel functions
 def epanechnikov_kernel(x):
@@ -13,10 +14,9 @@ def triangle_kernel(x):
 
 # Local polynomial estimation
 def local_polynomial_regression(data, kernel_type, bandwidth, degree, x0):
-    x = data[:, :-1]
-    y = data[:, -1]
+    x = data[:, 0]
+    y = data[:, 1]
     n = len(y)
-    p = x.shape[1]
     
     if kernel_type == 'epa':
         kernel = epanechnikov_kernel
@@ -27,12 +27,58 @@ def local_polynomial_regression(data, kernel_type, bandwidth, degree, x0):
     else:
         raise ValueError('Unsupported kernel type')
     
-    X = np.ones((n, 1))
-    for i in range(1, degree + 1):
-        for j in range(p):
-            X = np.hstack((X, (x[:, j] - x0[j])**i))
+    # Compute the polynomial coefficients for each x0 value
+    beta_hat = []
+    for xi in x0:
+        # Construct the weight and design matrices
+        W = np.diag(kernel(np.abs((x - xi) / bandwidth)) / bandwidth)
+        X = np.vander(x - xi, degree + 1, increasing=True)
+        
+        beta_hat_i = np.linalg.inv(X.T @ W @ X) @ X.T @ W @ y
+        beta_hat.append(beta_hat_i)
     
-    W = block_diag(*[kernel(np.linalg.norm((x[i] - x0) / bandwidth)) for i in range(n)])
-    beta_hat = np.linalg.inv(X.T @ W @ X) @ X.T @ W @ y
-    
-    return beta_hat[-1]
+    return np.array(beta_hat)
+
+
+
+# Loss function of partial linear single index model: y = \eta(\beta^T x) + \theta^T Z + \epsilon 
+def loss_plsim(data, kernel_type, bandwidth, degree, beta, theta):
+    # data should be in the form of (x,z,y), where x is the non-parametric one, z is the linear one, and y is the response
+    # each raw is the observation
+    x = data['x']
+    z = data['z']
+    y = data['y']
+
+    # transformed model: y- \theta^T Z = eta(\beta^T X) + \epsilon
+    y_transformed = y - theta.T @ z.T
+    x_transformed = beta.T @ x.T
+    data_transformed = np.column_stack((x_transformed,y_transformed))
+
+    # estimate eta
+    eta_hat_d = local_polynomial_regression(data_transformed, kernel_type, bandwidth, degree, x0=x_transformed)
+    eta_hat = eta_hat_d[:,0]
+
+    loss = np.sum((y - eta_hat - theta.T @ z.T) ** 2)
+
+    return loss
+
+
+# define the data
+data = {
+    'x': np.random.rand(100, 3),
+    'z': np.random.rand(100, 2),
+    'y': np.random.rand(100, 1)
+}
+
+# define the kernel type, bandwidth, and degree
+kernel_type = 'epa'
+bandwidth = 0.5
+degree = 2
+
+# define the beta and theta parameters
+beta = np.array([1, 2, 3])
+theta = np.array([4, 5])
+
+# calculate the loss
+loss = loss_plsim(data, kernel_type, bandwidth, degree, beta, theta)
+print(loss)
