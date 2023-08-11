@@ -1,6 +1,18 @@
 
 import numpy as np
 
+# Define kernel functions
+def epanechnikov_kernel(x):
+    return np.where(np.abs(x) <= 1, 3/4 * (1 - x**2), 0)
+
+def uniform_kernel(x):
+    return np.where(np.abs(x) <= 1, 1, 0)
+
+def triangle_kernel(x):
+    return np.where(np.abs(x) <= 1, 1 - np.abs(x), 0)
+
+# Local polynomial estimation
+import numpy as np
 
 # Define kernel functions
 def epanechnikov_kernel(x):
@@ -40,7 +52,6 @@ def local_polynomial_regression(data, kernel_type, bandwidth, degree, x0):
     return np.array(beta_hat)
 
 
-
 # Loss function of partial linear single index model: y = \eta(\beta^T x) + \theta^T Z + \epsilon 
 def loss_plsim(data, kernel_type, bandwidth, degree, beta, theta):
     # data should be in the form of (x,z,y), where x is the non-parametric one, z is the linear one, and y is the response
@@ -62,23 +73,58 @@ def loss_plsim(data, kernel_type, bandwidth, degree, beta, theta):
 
     return loss
 
+# Profile least sequare estimation
+from scipy.optimize import minimize
+from math import sqrt
 
-# define the data
-data = {
-    'x': np.random.rand(100, 3),
-    'z': np.random.rand(100, 2),
-    'y': np.random.rand(100, 1)
-}
+def optimize_plsim(data, kernel_type, bandwidth, degree):
+    # define the objective function
+    def objective(params):
+        try:
+            beta = params[:data['x'].shape[1]]
+            theta = params[data['x'].shape[1]:]
+            loss = loss_plsim(data, kernel_type, bandwidth, degree, beta, theta)
+        except:
+            # return a large value if an error occurs
+            loss = np.inf
+        return loss
+    
+    # define the constraint
+    cons = ({'type': 'eq', 'fun': lambda params: np.linalg.norm(params[:data['x'].shape[1]]) - 1})
+    
+    # define the initial values for beta and theta
+    beta_init = np.ones(data['x'].shape[1])/ sqrt(data['x'].shape[1])
+    theta_init = np.ones(data['z'].shape[1])
+    params_init = np.concatenate((beta_init, theta_init))
+
+    # minimize the objective function
+    res = minimize(objective, params_init, method='SLSQP', constraints=cons)
+
+    # extract the optimal values for beta and theta
+    beta_opt = res.x[:data['x'].shape[1]]
+    theta_opt = res.x[data['x'].shape[1]:]
+    
+    return beta_opt, theta_opt
+
+
+
+
+# generate the data
+n = 500
+x = np.random.uniform(0,1,size=(n,2))
+z = np.random.uniform(-1,1,size=(n,2))
+error = 0.1*np.random.randn(n, 1)
+y = (0.36*x[:,0] + 0.64*x[:,1])**3 + 0.5*z[:,0] + 0.8*z[:,1] + error
+data = {'x': x, 'z': z, 'y': y}
 
 # define the kernel type, bandwidth, and degree
 kernel_type = 'epa'
-bandwidth = 0.5
+bandwidth = 0.04
 degree = 2
 
-# define the beta and theta parameters
-beta = np.array([1, 2, 3])
-theta = np.array([4, 5])
+# find the optimal values for beta and theta
+beta_opt, theta_opt = optimize_plsim(data, kernel_type, bandwidth, degree)
 
-# calculate the loss
-loss = loss_plsim(data, kernel_type, bandwidth, degree, beta, theta)
-print(loss)
+
+print('Optimal beta:', beta_opt)
+print('Optimal theta:', theta_opt)
