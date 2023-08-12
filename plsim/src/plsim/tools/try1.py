@@ -1,3 +1,4 @@
+
 import numpy as np
 
 # Define kernel functions
@@ -51,6 +52,11 @@ def local_polynomial_regression(data, kernel_type, bandwidth, degree, x0):
     return np.array(beta_hat)
 
 
+
+# Test local-po
+
+
+
 # Loss function of partial linear single index model: y = \eta(\beta^T x) + \theta^T Z + \epsilon 
 def loss_plsim(data, kernel_type, bandwidth, degree, beta, theta):
     # data should be in the form of (x,z,y), where x is the non-parametric one, z is the linear one, and y is the response
@@ -76,13 +82,12 @@ def loss_plsim(data, kernel_type, bandwidth, degree, beta, theta):
 from scipy.optimize import minimize
 from math import sqrt
 
-def optimize_plsim(data, kernel_type, degree):
+def optimize_plsim(data, kernel_type, bandwidth, degree):
     # define the objective function
     def objective(params):
         try:
             beta = params[:data['x'].shape[1]]
-            theta = params[data['x'].shape[1]:-1]
-            bandwidth = params[-1]
+            theta = params[data['x'].shape[1]:]
             loss = loss_plsim(data, kernel_type, bandwidth, degree, beta, theta)
         except:
             # return a large value if an error occurs
@@ -95,47 +100,46 @@ def optimize_plsim(data, kernel_type, degree):
     # define the initial values for beta and theta
     beta_init = np.ones(data['x'].shape[1])/ sqrt(data['x'].shape[1])
     theta_init = np.ones(data['z'].shape[1])
-    bandwidth_init = 0.4 * ( max(beta_init.T @ data['x'].T) - min(beta_init.T @ data['x'].T) )
-    params_init = np.concatenate((beta_init, theta_init, bandwidth_init), axis=None)
+    params_init = np.concatenate((beta_init, theta_init), axis=None)
 
     # minimize the objective function
     res = minimize(objective, params_init, method='SLSQP', constraints=cons)
 
     # extract the optimal values for beta and theta
     beta_opt = res.x[:data['x'].shape[1]]
-    theta_opt = res.x[data['x'].shape[1]:-1]
-    bandwidth_opt = res.x[-1]
+    theta_opt = res.x[data['x'].shape[1]:]
     
-    return beta_opt, theta_opt, bandwidth_opt
+    return beta_opt, theta_opt
 
 
 
 
 # generate the data
-n = 200
+n = 500
 x= np.zeros((n,2))
-
 x[:,0] = np.random.uniform(0,1,size=n)
 x[:,1] = np.random.uniform(0,2,size=n)
-z = np.random.uniform(-1,1,size=(n,2))
+z= np.zeros((n,2))
+z[:,0] = np.random.uniform(-1,1,size=n)
+z[:,1] = np.random.randn(n)
 error = 0.1*np.random.randn(n)
 y = (0.6*x[:,0] + 0.8*x[:,1])**2 + 0.5*z[:,0] + 0.8*z[:,1] + error
 data = {'x': x, 'z': z, 'y': y}
 
 # define the kernel type, bandwidth, and degree
 kernel_type = 'epa'
+bandwidth = 0.08
 degree = 1
 
 # find the optimal values for beta and theta
 import time
 
 start_time = time.time()
-beta_opt, theta_opt, bandwidth_opt = optimize_plsim(data, kernel_type, degree)
+beta_opt, theta_opt = optimize_plsim(data, kernel_type, bandwidth, degree)
 end_time = time.time()
 
 print('Execution time:', end_time - start_time)
 print('Optimal beta:', beta_opt)
 print(np.sum((beta_opt)**2))
 print('Optimal theta:', theta_opt)
-print('Optimal bandwidth:', bandwidth_opt)
 
