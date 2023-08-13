@@ -76,17 +76,36 @@ def loss_plsim(data, kernel_type, bandwidth, degree, beta, theta):
 from scipy.optimize import minimize
 from math import sqrt
 
-def optimize_plsim(data, kernel_type, degree):
+def optimize_plsim(data, kernel_type, degree, domain_check=False, lower=None, upper=None):
     # define the objective function
     def objective(params):
-        try:
-            beta = params[:data['x'].shape[1]]
-            theta = params[data['x'].shape[1]:-1]
-            bandwidth = params[-1]
-            loss = loss_plsim(data, kernel_type, bandwidth, degree, beta, theta)
-        except:
-            # return a large value if an error occurs
-            loss = np.inf
+        if domain_check == False:
+            try:
+                beta = params[:data['x'].shape[1]]
+                theta = params[data['x'].shape[1]:-1]
+                bandwidth = params[-1]
+                loss = loss_plsim(data, kernel_type, bandwidth, degree, beta, theta)
+            except:
+                # return a large value if an error occurs
+                loss = np.inf
+        else:
+            try:
+                beta = params[:data['x'].shape[1]]
+                theta = params[data['x'].shape[1]:-1]
+                bandwidth = params[-1]
+                x_to_try = np.linspace(lower,upper,10)
+                # transformed model: y- \theta^T Z = eta(\beta^T X) + \epsilon
+                x = data['x']
+                z = data['z']
+                y = data['y']
+                y_transformed = y - theta.T @ z.T
+                x_transformed = beta.T @ x.T
+                data_transformed = np.column_stack((x_transformed,y_transformed))
+                est = local_polynomial_regression(data_transformed, kernel_type, bandwidth, degree,x0=x_to_try)
+                loss = loss_plsim(data, kernel_type, bandwidth, degree, beta, theta)
+            except:
+                # return a large value if an error occurs
+                loss = np.inf
         return loss
     
     # define the constraints
