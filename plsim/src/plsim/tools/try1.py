@@ -1,40 +1,31 @@
-from inference import bootstrap_inference
+
+from est import local_polynomial_regression
 
 import numpy as np
 
-# generate the data
+# Generate some sample data
 n = 200
-x= np.zeros((n,2))
+x1 = np.random.uniform(0,1,n)
+x2 = np.random.uniform(0,1,n)
+x = (x1 + x2) / 2
 
-x[:,0] = np.random.uniform(0,1,size=n)
-x[:,1] = np.random.uniform(0,2,size=n)
-z = np.random.uniform(-1,1,size=(n,2))
-error = 0.1*np.random.randn(n)
-y = (0.6*x[:,0] + 0.8*x[:,1])**2 + 0.5*z[:,0] + 0.8*z[:,1] + error
-data = {'x': x, 'z': z, 'y': y}
+y = np.sin(2 * np.pi * x) + 0.1 * np.random.randn(n)
+data = np.column_stack((x, y))
 
-# define the kernel type, bandwidth, and degree
+# Set the parameters
 kernel_type = 'epa'
+bandwidth = 0.1
 degree = 1
 
-x0 = np.linspace(0.2, 2 , 27)
-result = bootstrap_inference(data, kernel_type, degree, b_time=2000, 
-                              x0=x0, quantile=0.95)
+x0 = np.linspace(0, 1, 100)
 
+# Perform local polynomial regression
+beta_hat = local_polynomial_regression(data, kernel_type, bandwidth, degree, x0)
+
+# Plot the results
 import matplotlib.pyplot as plt
 
-
-# Assuming bs_result is a dictionary containing the results
-scb_l = result['scb_l']
-scb_u = result['scb_u']
-
-# Plot the band
-plt.fill_between(x0, scb_l, scb_u, alpha=0.2)
-
-# Plot the true function
-# Assuming true_function is a function that takes x0 as input and returns the true values
-true_values = np.array(x0**2)
-plt.plot(x0, true_values)
-
-# Show the plot
+plt.scatter(x, y)
+plt.plot(x0, beta_hat[:, 0], 'r')
 plt.show()
+
