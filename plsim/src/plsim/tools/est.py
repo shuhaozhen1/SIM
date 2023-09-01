@@ -74,60 +74,94 @@ def loss_plsim(data, kernel_type, bandwidth, degree, beta, theta):
 
 # Profile least sequare estimation
 from scipy.optimize import minimize
-from math import sqrt
 
-def optimize_plsim(data, kernel_type, degree, domain_check=False, lower=None, upper=None):
+# def optimize_plsim(data, kernel_type, degree, domain_check=False, lower=None, upper=None):
+#     # define the objective function
+#     def objective(params):
+#         if domain_check == False:
+#             try:
+#                 beta = params[:data['x'].shape[1]]
+#                 theta = params[data['x'].shape[1]:-1]
+#                 bandwidth = params[-1]
+#                 loss = loss_plsim(data, kernel_type, bandwidth, degree, beta, theta)
+#             except:
+#                 # return a large value if an error occurs
+#                 loss = np.inf
+#         else:
+#             try:
+#                 beta = params[:data['x'].shape[1]]
+#                 theta = params[data['x'].shape[1]:-1]
+#                 bandwidth = params[-1]
+#                 x_to_try = np.linspace(lower,upper,10)
+#                 # transformed model: y- \theta^T Z = eta(\beta^T X) + \epsilon
+#                 x = data['x']
+#                 z = data['z']
+#                 y = data['y']
+#                 y_transformed = y - theta.T @ z.T
+#                 x_transformed = beta.T @ x.T
+#                 data_transformed = np.column_stack((x_transformed,y_transformed))
+#                 est = local_polynomial_regression(data_transformed, kernel_type, bandwidth, degree,x0=x_to_try)
+#                 loss = loss_plsim(data, kernel_type, bandwidth, degree, beta, theta)
+#             except:
+#                 # return a large value if an error occurs
+#                 loss = np.inf
+#         return loss
+    
+#     # define the constraints
+#     cons = ({'type': 'eq', 'fun': lambda params: np.linalg.norm(params[:data['x'].shape[1]]) - 1},
+#         {'type': 'ineq', 'fun': lambda params: params[0]},
+#         {'type': 'ineq', 'fun': lambda params: params[-1]})
+
+#     # define the constraint
+#     # cons = ({'type': 'eq', 'fun': lambda params: np.linalg.norm(params[:data['x'].shape[1]]) - 1})
+    
+#     # define the initial values for beta and theta
+#     beta_init = np.ones(data['x'].shape[1])/ np.sqrt(data['x'].shape[1])
+#     theta_init = np.ones(data['z'].shape[1])
+#     bandwidth_init = 0.4 * ( max(beta_init.T @ data['x'].T) - min(beta_init.T @ data['x'].T) )
+#     params_init = np.concatenate((beta_init, theta_init, bandwidth_init), axis=None)
+
+#     # minimize the objective function
+#     res = minimize(objective, params_init, method='SLSQP', constraints=cons)
+
+#     # extract the optimal values for beta and theta
+#     beta_opt = res.x[:data['x'].shape[1]]
+#     theta_opt = res.x[data['x'].shape[1]:-1]
+#     bandwidth_opt = res.x[-1]
+    
+#     return beta_opt, theta_opt, bandwidth_opt
+
+
+def optimize_plsim_h(data, kernel_type, degree, bandwidth):
     # define the objective function
     def objective(params):
-        if domain_check == False:
-            try:
-                beta = params[:data['x'].shape[1]]
-                theta = params[data['x'].shape[1]:-1]
-                bandwidth = params[-1]
-                loss = loss_plsim(data, kernel_type, bandwidth, degree, beta, theta)
-            except:
-                # return a large value if an error occurs
-                loss = np.inf
-        else:
-            try:
-                beta = params[:data['x'].shape[1]]
-                theta = params[data['x'].shape[1]:-1]
-                bandwidth = params[-1]
-                x_to_try = np.linspace(lower,upper,10)
-                # transformed model: y- \theta^T Z = eta(\beta^T X) + \epsilon
-                x = data['x']
-                z = data['z']
-                y = data['y']
-                y_transformed = y - theta.T @ z.T
-                x_transformed = beta.T @ x.T
-                data_transformed = np.column_stack((x_transformed,y_transformed))
-                est = local_polynomial_regression(data_transformed, kernel_type, bandwidth, degree,x0=x_to_try)
-                loss = loss_plsim(data, kernel_type, bandwidth, degree, beta, theta)
-            except:
-                # return a large value if an error occurs
-                loss = np.inf
+        try:
+            beta = params[:data['x'].shape[1]]
+            theta = params[data['x'].shape[1]:]
+            loss = loss_plsim(data, kernel_type, bandwidth, degree, beta, theta)
+        except:
+            # return a large value if an error occurs
+            loss = np.inf
         return loss
     
     # define the constraints
     cons = ({'type': 'eq', 'fun': lambda params: np.linalg.norm(params[:data['x'].shape[1]]) - 1},
-        {'type': 'ineq', 'fun': lambda params: params[0]},
-        {'type': 'ineq', 'fun': lambda params: params[-1]})
+        {'type': 'ineq', 'fun': lambda params: params[0]})
 
     # define the constraint
     # cons = ({'type': 'eq', 'fun': lambda params: np.linalg.norm(params[:data['x'].shape[1]]) - 1})
     
     # define the initial values for beta and theta
-    beta_init = np.ones(data['x'].shape[1])/ sqrt(data['x'].shape[1])
+    beta_init = np.ones(data['x'].shape[1])/ np.sqrt(data['x'].shape[1])
     theta_init = np.ones(data['z'].shape[1])
-    bandwidth_init = 0.4 * ( max(beta_init.T @ data['x'].T) - min(beta_init.T @ data['x'].T) )
-    params_init = np.concatenate((beta_init, theta_init, bandwidth_init), axis=None)
+
+    params_init = np.concatenate((beta_init, theta_init), axis=None)
 
     # minimize the objective function
     res = minimize(objective, params_init, method='SLSQP', constraints=cons)
 
     # extract the optimal values for beta and theta
     beta_opt = res.x[:data['x'].shape[1]]
-    theta_opt = res.x[data['x'].shape[1]:-1]
-    bandwidth_opt = res.x[-1]
+    theta_opt = res.x[data['x'].shape[1]:]
     
-    return beta_opt, theta_opt, bandwidth_opt
+    return beta_opt, theta_opt, bandwidth

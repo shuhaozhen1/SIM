@@ -1,14 +1,14 @@
-from est import optimize_plsim, local_polynomial_regression
+from est import optimize_plsim_h, local_polynomial_regression
 import numpy as np
 
 # Inference for non-parametric part \eta
 
-def center_eta(data, kernel_type, degree, domain_l=None, domain_u=None):
+def center_eta(data, kernel_type, degree, bandwidth):
     # Estimation
-    if domain_l==domain_u==None:
-        beta_hat, theta_hat, bandwidth_opt = optimize_plsim(data, kernel_type, degree)
+    
+    beta_hat, theta_hat, bandwidth_opt = optimize_plsim_h(data, kernel_type, degree, bandwidth=bandwidth)
     else: 
-        beta_hat, theta_hat, bandwidth_opt = optimize_plsim(data, kernel_type, degree, 
+        beta_hat, theta_hat, bandwidth_opt = optimize_plsim_h(data, kernel_type, degree, 
                                                             domain_check=True, lower=domain_l,upper=domain_u)
     # Plug-in for the centralization of the repsonse for non-parametric part \eta
     x = data['x']
