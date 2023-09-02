@@ -10,24 +10,11 @@ def uniform_kernel(x):
 def triangle_kernel(x):
     return np.where(np.abs(x) <= 1, 1 - np.abs(x), 0)
 
-# Local polynomial estimation
-import numpy as np
-
-# Define kernel functions
-def epanechnikov_kernel(x):
-    return np.where(np.abs(x) <= 1, 3/4 * (1 - x**2), 0)
-
-def uniform_kernel(x):
-    return np.where(np.abs(x) <= 1, 1, 0)
-
-def triangle_kernel(x):
-    return np.where(np.abs(x) <= 1, 1 - np.abs(x), 0)
 
 # Local polynomial estimation
 def local_polynomial_regression(data, kernel_type, bandwidth, degree, x0):
     x = data[:, 0]
     y = data[:, 1]
-    n = len(y)
     
     if kernel_type == 'epa':
         kernel = epanechnikov_kernel
@@ -49,6 +36,25 @@ def local_polynomial_regression(data, kernel_type, bandwidth, degree, x0):
         beta_hat.append(beta_hat_i)
     
     return np.array(beta_hat)
+
+
+# # 2 dimensional Kernels
+
+# # Epanechnikov Kernel
+# def epanechnikov_kernel_2d(x, y):
+#     z = epanechnikov_kernel(x) * epanechnikov_kernel(y)
+#     return z
+
+# # Uniform Kernel
+# def uniform_kernel_2d(x, y): 
+#     z = uniform_kernel(x) *  uniform_kernel(y) 
+#     return z
+
+# # Triangle Kernel
+# def triangle_kernel_2d(x, y): 
+#     z = triangle_kernel(x) *  triangle_kernel(y) 
+#     return z
+
 
 
 # Loss function of partial linear single index model: y = \eta(\beta^T x) + \theta^T Z + \epsilon 
