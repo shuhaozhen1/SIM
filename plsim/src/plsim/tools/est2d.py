@@ -81,3 +81,42 @@ def loss_plsim(data, kernel_type, bandwidth1, bandwidth2, degree, beta, theta):
     loss = np.sum((y - eta_hat - theta.T @ z.T) ** 2)
 
     return loss
+
+
+
+# Profile least sequare estimation
+from scipy.optimize import minimize
+
+def optimize_plsim_h(data, kernel_type, degree, bandwidth):
+    # define the objective function
+    def objective(params):
+        try:
+            beta = params[:data['x'].shape[1]]
+            theta = params[data['x'].shape[1]:]
+            loss = loss_plsim(data, kernel_type, bandwidth, degree, beta, theta)
+        except:
+            # return a large value if an error occurs
+            loss = np.inf
+        return loss
+    
+    # define the constraints
+    cons = ({'type': 'eq', 'fun': lambda params: np.linalg.norm(params[:data['x'].shape[1]]) - 1},
+        {'type': 'ineq', 'fun': lambda params: params[0]})
+
+    # define the constraint
+    # cons = ({'type': 'eq', 'fun': lambda params: np.linalg.norm(params[:data['x'].shape[1]]) - 1})
+    
+    # define the initial values for beta and theta
+    beta_init = np.ones(data['x'].shape[1])/ np.sqrt(data['x'].shape[1])
+    theta_init = np.ones(data['z'].shape[1])
+
+    params_init = np.concatenate((beta_init, theta_init), axis=None)
+
+    # minimize the objective function
+    res = minimize(objective, params_init, method='SLSQP', constraints=cons)
+
+    # extract the optimal values for beta and theta
+    beta_opt = res.x[:data['x'].shape[1]]
+    theta_opt = res.x[data['x'].shape[1]:]
+    
+    return beta_opt, theta_opt, bandwidth
