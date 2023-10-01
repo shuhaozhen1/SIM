@@ -5,3 +5,7 @@ beta = np.array([2, 3])
 
 result = np.dot(X, beta)
 print(result)
+
+x = np.column_stack((np.linspace(0,1,10), np.linspace(0,1,10)))
+for a,b in :
+    print(a,b)

@@ -95,7 +95,7 @@ def generate_data(n, m, beta, theta):
 
     # Define function for mu
     def mu(x, y):
-        return x ** 2 + y ** 2
+        return  x + y ** 2 
 
     # Define function for epsilon
     def epsilon(t):
@@ -113,8 +113,8 @@ def generate_data(n, m, beta, theta):
         time_points.append(time_points_i)
 
         # Generate m_i sets of predictor variables X(T_{ij}) and Z(T_{ij}) using known functions
-        X1_i = np.random.uniform(1) * X1(time_points_i)
-        X2_i = np.random.uniform(1) * X2(time_points_i)
+        X1_i = np.random.uniform(0,1,1) * X1(time_points_i)
+        X2_i = np.random.uniform(0,1,1) * X2(time_points_i)
         Z1_i = np.random.normal(loc=1, scale=1, size=1) * Z1(time_points_i)
         Z2_i = np.random.normal(loc=1, scale=1, size=1) * Z2(time_points_i)
         X_i = np.column_stack((X1_i, X2_i))
@@ -139,10 +139,25 @@ def generate_data(n, m, beta, theta):
 from est2d import optimize_plsim_h_2d as estf
 
 
-time_points, X_samples, Z_samples, Y_samples =  generate_data(200, 10, np.array([0.8, 0.6]), np.array([2, 3]))
+time_points, X_samples, Z_samples, Y_samples =  generate_data(100, 5, np.array([0.8, 0.6]), np.array([2, 3]))
 
 data = {'T':time_points, 'X':X_samples, 'Z': Z_samples, 'Y': Y_samples} 
 
-results = estf(data, 'epa', 1, 0.2, 0.2)
+# beta_init = np.ones(2)/ np.sqrt(2)
+# theta_init = np.ones(2)
+
+# intial = np.concatenate((beta_init, theta_init ))[0]
+# print(intial)
+
+results = estf(data, 'epa', 1, 0.5, 0.5)
 
 print(results)
+
+beta_init = np.array([1, 0])
+    #theta_init = np.ones(pz)
+theta_init = np.array([2.1,3.1])
+
+params_init = np.concatenate((beta_init, theta_init))
+
+print(params_init[0])
+

@@ -60,6 +60,11 @@ def local_polynomial_regression_2d(data, kernel_type, bandwidth1, bandwidth2, de
     # return beta_hat_reshaped
     return beta_hat
 
+
+
+
+
+
 def loss_plsim_2d(data, kernel_type, bandwidth1, bandwidth2, degree, beta, theta):
     # data should be in the form of (x,z,y), where x is the non-parametric one, z is the linear one, and y is the response
     # each raw is the observation
@@ -109,16 +114,18 @@ def optimize_plsim_h_2d(data, kernel_type, degree, bandwidth1,bandwidth2):
         {'type': 'ineq', 'fun': lambda params: params[0]})
 
     # define the constraint
-    # cons = ({'type': 'eq', 'fun': lambda params: np.linalg.norm(params[:data['x'].shape[1]]) - 1})
+    # cons = ({'type': 'eq', 'fun': lambda params: np.linalg.norm(params[:px]) - 1})
     
     # define the initial values for beta and theta
-    beta_init = np.ones(px)/ np.sqrt(px)
-    theta_init = np.ones(pz)
+    # beta_init = np.ones(px)/ np.sqrt(px)
+    beta_init = np.array([1, 0])
+    #theta_init = np.ones(pz)
+    theta_init = np.array([2.1,3.1])
 
-    params_init = np.concatenate((beta_init, theta_init), axis=None)
+    params_init = np.concatenate((beta_init, theta_init))
 
     # minimize the objective function
-    res = minimize(objective, params_init, method='SLSQP', constraints=cons)
+    res = minimize(objective, params_init, method='CG', constraints=cons)
 
     # extract the optimal values for beta and theta
     beta_opt = res.x[:px]
@@ -126,3 +133,5 @@ def optimize_plsim_h_2d(data, kernel_type, degree, bandwidth1,bandwidth2):
     
     # return beta_opt, theta_opt, bandwidth1, bandwidth2
     return res
+
+
