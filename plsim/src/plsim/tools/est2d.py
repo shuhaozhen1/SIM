@@ -60,55 +60,60 @@ def local_polynomial_regression_2d(data, kernel_type, bandwidth1, bandwidth2, de
     # return beta_hat_reshaped
     return beta_hat
 
-def loss_plsim(data, kernel_type, bandwidth1, bandwidth2, degree, beta, theta):
+def loss_plsim_2d(data, kernel_type, bandwidth1, bandwidth2, degree, beta, theta):
     # data should be in the form of (x,z,y), where x is the non-parametric one, z is the linear one, and y is the response
     # each raw is the observation
-    t = np.array(data['t'])
-    x = data['x']
-    z = data['z']
-    y = data['y']
+    t = np.concatenate(data['T'])
+    x = np.concatenate(data['X'])
+    z = np.concatenate(data['Z'])
+    y = np.concatenate(data['Y'])
 
     # transformed model: y- \theta^T Z = eta(\beta^T X) + \epsilon
-    y_transformed = y - theta.T @ z.T
-    x_transformed = beta.T @ x.T
-    data_transformed = np.column_stack((t, x_transformed,y_transformed))
-    tx = np.column_stack((t, x_transformed))
+    y_transformed = y - np.dot(z, theta)
+    u_transformed = np.dot(x, beta) 
+    data_transformed = np.column_stack((t, u_transformed,y_transformed))
+    tx = np.column_stack((t, u_transformed))
 
     # estimate eta
     eta_hat_d = local_polynomial_regression_2d(data_transformed, kernel_type, bandwidth1, bandwidth2, degree, xy0=tx)
     eta_hat = eta_hat_d[:,0]
 
-    loss = np.sum((y - eta_hat - theta.T @ z.T) ** 2)
+    loss = np.sum((y - eta_hat - np.dot(z, theta)) ** 2)
 
     return loss
-
 
 
 # Profile least sequare estimation
 from scipy.optimize import minimize
 
-def optimize_plsim_h(data, kernel_type, degree, bandwidth):
+def optimize_plsim_h_2d(data, kernel_type, degree, bandwidth1,bandwidth2):
+    x = np.concatenate(data['X'])
+    z = np.concatenate(data['Z'])
+
+    px = x.shape[1]
+    pz = z.shape[1]
+
     # define the objective function
     def objective(params):
         try:
-            beta = params[:data['x'].shape[1]]
-            theta = params[data['x'].shape[1]:]
-            loss = loss_plsim(data, kernel_type, bandwidth, degree, beta, theta)
+            beta = params[:px]
+            theta = params[px:]
+            loss = loss_plsim_2d(data, kernel_type, bandwidth1, bandwidth2, degree, beta, theta)
         except:
             # return a large value if an error occurs
             loss = np.inf
         return loss
     
     # define the constraints
-    cons = ({'type': 'eq', 'fun': lambda params: np.linalg.norm(params[:data['x'].shape[1]]) - 1},
+    cons = ({'type': 'eq', 'fun': lambda params: np.linalg.norm(params[:px]) - 1},
         {'type': 'ineq', 'fun': lambda params: params[0]})
 
     # define the constraint
     # cons = ({'type': 'eq', 'fun': lambda params: np.linalg.norm(params[:data['x'].shape[1]]) - 1})
     
     # define the initial values for beta and theta
-    beta_init = np.ones(data['x'].shape[1])/ np.sqrt(data['x'].shape[1])
-    theta_init = np.ones(data['z'].shape[1])
+    beta_init = np.ones(px)/ np.sqrt(px)
+    theta_init = np.ones(pz)
 
     params_init = np.concatenate((beta_init, theta_init), axis=None)
 
@@ -116,7 +121,8 @@ def optimize_plsim_h(data, kernel_type, degree, bandwidth):
     res = minimize(objective, params_init, method='SLSQP', constraints=cons)
 
     # extract the optimal values for beta and theta
-    beta_opt = res.x[:data['x'].shape[1]]
-    theta_opt = res.x[data['x'].shape[1]:]
+    beta_opt = res.x[:px]
+    theta_opt = res.x[px:]
     
-    return beta_opt, theta_opt, bandwidth
+    # return beta_opt, theta_opt, bandwidth1, bandwidth2
+    return res
