@@ -130,6 +130,6 @@ def optimize_plsim_h_2d(data, kernel_type, degree, bandwidth1,bandwidth2):
     theta_opt = res.x[px:]
     
     # return beta_opt, theta_opt, bandwidth1, bandwidth2
-    return res
+    return beta_opt, theta_opt
 
 

@@ -84,7 +84,7 @@ from est2d import optimize_plsim_h_2d as estf
 from est2d import loss_plsim_2d as ls2d
 from est2d import local_polynomial_regression_2d
 
-time_points, X_samples, Z_samples, Y_samples =  generate_data(200, 5, np.array([0.8, 0.6]), np.array([2, 3]))
+time_points, X_samples, Z_samples, Y_samples =  generate_data(50, 5, np.array([0.8, 0.6]), np.array([2, 3]))
 
 data = {'T':time_points, 'X':X_samples, 'Z': Z_samples, 'Y': Y_samples} 
 
