@@ -54,8 +54,8 @@ def local_polynomial_regression_2d(data, kernel_type, bandwidth1, bandwidth2, de
         beta_hat_i = np.linalg.inv(X.T @ W @ X) @ X.T @ W @ y
         beta_hat.append(beta_hat_i)
     
-    # Reshape
-    beta_hat = np.matrix(beta_hat)
+    # # Reshape
+    beta_hat = np.array(beta_hat)
     
     # return beta_hat_reshaped
     return beta_hat
@@ -117,15 +117,13 @@ def optimize_plsim_h_2d(data, kernel_type, degree, bandwidth1,bandwidth2):
     # cons = ({'type': 'eq', 'fun': lambda params: np.linalg.norm(params[:px]) - 1})
     
     # define the initial values for beta and theta
-    # beta_init = np.ones(px)/ np.sqrt(px)
-    beta_init = np.array([1, 0])
-    #theta_init = np.ones(pz)
-    theta_init = np.array([2.1,3.1])
+    beta_init = np.ones(px)/ np.sqrt(px)
+    theta_init = np.ones(pz)
 
     params_init = np.concatenate((beta_init, theta_init))
 
     # minimize the objective function
-    res = minimize(objective, params_init, method='CG', constraints=cons)
+    res = minimize(objective, params_init, method='SLSQP', constraints=cons)
 
     # extract the optimal values for beta and theta
     beta_opt = res.x[:px]

@@ -1,65 +1,9 @@
 
 import numpy as np
 
-# Define kernel functions
-def epanechnikov_kernel(x):
-    return np.where(np.abs(x) <= 1, 3/4 * (1 - x**2), 0)
+import time
 
-def uniform_kernel(x):
-    return np.where(np.abs(x) <= 1, 1, 0)
-
-def triangle_kernel(x):
-    return np.where(np.abs(x) <= 1, 1 - np.abs(x), 0)
-
-
-# Epanechnikov Kernel
-def epanechnikov_kernel_2d(x, y):
-    z = epanechnikov_kernel(x) * epanechnikov_kernel(y)
-    return z
-
-# Uniform Kernel
-def uniform_kernel_2d(x, y): 
-    z = uniform_kernel(x) *  uniform_kernel(y) 
-    return z
-
-# Triangle Kernel
-def triangle_kernel_2d(x, y): 
-    z = triangle_kernel(x) *  triangle_kernel(y) 
-    return z
-
-# Define the local polynomial regression function
-def local_polynomial_regression_2d(data, kernel_type, bandwidth1, bandwidth2, degree, xy0):
-    x1 = data[:, 0]
-    x2 = data[:, 1]
-    y = data[:, 2]
-    
-    if kernel_type == 'epa':
-        kernel = epanechnikov_kernel_2d
-    elif kernel_type == 'unif':
-        kernel = uniform_kernel_2d
-    elif kernel_type == 'triangle':
-        kernel = triangle_kernel_2d
-    else:
-        raise ValueError('Unsupported kernel type')
-    
-    # Compute the polynomial coefficients for each x0 value
-    beta_hat = []
-
-    for xi1, xi2 in xy0:
-        # Construct the weight and design matrices
-        W = np.diag(kernel(np.abs(x1-xi1)/bandwidth1, np.abs(x2-xi2)/bandwidth2)/bandwidth1/bandwidth2)
-        X1_design = np.vander(x1 - xi1, degree + 1, increasing=True)
-        X2_design = np.vander(x2 - xi2, degree + 1, increasing=True)[:, 1:]
-        X = np.column_stack((X1_design,X2_design))
-        
-        beta_hat_i = np.linalg.inv(X.T @ W @ X) @ X.T @ W @ y
-        beta_hat.append(beta_hat_i)
-    
-    # Reshape
-    beta_hat = np.matrix(beta_hat)
-    
-    # return beta_hat_reshaped
-    return beta_hat
+start_time = time.time()
 
 
 
@@ -137,9 +81,10 @@ def generate_data(n, m, beta, theta):
 
 
 from est2d import optimize_plsim_h_2d as estf
+from est2d import loss_plsim_2d as ls2d
+from est2d import local_polynomial_regression_2d
 
-
-time_points, X_samples, Z_samples, Y_samples =  generate_data(100, 5, np.array([0.8, 0.6]), np.array([2, 3]))
+time_points, X_samples, Z_samples, Y_samples =  generate_data(200, 5, np.array([0.8, 0.6]), np.array([2, 3]))
 
 data = {'T':time_points, 'X':X_samples, 'Z': Z_samples, 'Y': Y_samples} 
 
@@ -149,15 +94,21 @@ data = {'T':time_points, 'X':X_samples, 'Z': Z_samples, 'Y': Y_samples}
 # intial = np.concatenate((beta_init, theta_init ))[0]
 # print(intial)
 
-results = estf(data, 'epa', 1, 0.5, 0.5)
+result = estf(data, 'epa', 1, 0.3, 0.3)
 
-print(results)
+print(result)
 
-beta_init = np.array([1, 0])
-    #theta_init = np.ones(pz)
-theta_init = np.array([2.1,3.1])
+# beta_init = np.array([1, 0])
+#     #theta_init = np.ones(pz)
+# theta_init = np.array([2.1,3.1])
 
-params_init = np.concatenate((beta_init, theta_init))
+# params_init = np.concatenate((beta_init, theta_init))
 
-print(params_init[0])
+# print(params_init[0])
+
+
+
+end_time = time.time()
+
+print("Time taken: ", end_time - start_time, "seconds")
 
