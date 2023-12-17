@@ -20,10 +20,10 @@ def generate_data(n, m, beta, theta):
     """
     # Define functions for X and Z
     def X1(t):
-        return t ** 2
+        return np.sin( np.pi/ 2 * t)
 
     def X2(t):
-        return t ** 3
+        return t
 
     def Z1(t):
         return np.cos(2 * np.pi * t)
