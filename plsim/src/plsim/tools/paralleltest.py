@@ -33,7 +33,7 @@ from multiprocessing import Pool
 #     print(error_rate)
 
 n = 80
-m = 30
+m = 40
 beta = np.array([0.8,0.6])
 theta = np.array([2, 3])
 def calculate_error_rate(i):
@@ -71,7 +71,7 @@ def calculate_error_rate(i):
 
 if __name__ == "__main__":
     with Pool() as p:
-        error_rate = p.map(calculate_error_rate, range(80))
+        error_rate = p.map(calculate_error_rate, range(40))
     error_rate = [i for i in error_rate if i is not None]  # Remove None values
     type1 = np.mean(error_rate)
     print(type1)
