@@ -28,7 +28,7 @@ def calculate_error_rate(i):
 
 if __name__ == "__main__":
     with Pool() as p:
-        error_rate = p.map(calculate_error_rate, range(160))
+        error_rate = p.map(calculate_error_rate, range(40))
     error_rate = [i for i in error_rate if i is not None]  # Remove None values
     type1 = np.mean(error_rate)
     print(type1)
