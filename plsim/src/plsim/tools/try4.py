@@ -33,12 +33,12 @@ from multiprocessing import Pool
 #     print(type1)
 #     print(error_rate)
 
-n = 200
+n = 100
 m = 5
 beta = np.array([0.8,0.6])
 theta = np.array([2, 3])
 time_points, X_samples, Z_samples, Y_samples =  dg.generate_data(n, m, beta, theta)
-data = {'T':time_points, 'X':X_samples, 'Z': Z_samples, 'Y': Y_samples} 
+# data = {'T':time_points, 'X':X_samples, 'Z': Z_samples, 'Y': Y_samples} 
 
 grid = np.arange(0.2, 0.8, 0.1)
 u_grid = 0.5 * np.sin(np.pi /2 * grid) + 0.5 * grid
@@ -50,8 +50,6 @@ std_norm_vars1 = np.random.standard_normal(n)
 
 std_norm_vars2 = np.random.standard_normal(n)
 
-beta_hat = beta + np.mean(std_norm_vars1)
-theta_hat = theta + np.mean(std_norm_vars2)
+print(np.mean(std_norm_vars1))
+print(np.mean(std_norm_vars2))
 
-result = infer.pseido_inference(data=data, bandwidth1= 0.15, bandwidth2= 0.15, 
-                                            points= points, beta_hat=beta_hat, theta_hat=theta_hat)

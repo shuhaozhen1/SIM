@@ -32,8 +32,8 @@ from multiprocessing import Pool
 #     print(type1)
 #     print(error_rate)
 
-n = 80
-m = 40
+n = 100
+m = 50
 beta = np.array([0.8,0.6])
 theta = np.array([2, 3])
 def calculate_error_rate(i):
@@ -48,9 +48,9 @@ def calculate_error_rate(i):
 
         true_eta = grid + u_grid ** 2
 
-        std_norm_vars1 = 0.1 * np.random.standard_normal(n)
+        std_norm_vars1 = 1.1 * np.random.standard_normal(n)
 
-        std_norm_vars2 = 0.1 * np.random.standard_normal(n)
+        std_norm_vars2 = 1.1 * np.random.standard_normal(n)
 
         beta_hat = beta + np.mean(std_norm_vars1)
         theta_hat = theta + np.mean(std_norm_vars2)
@@ -59,7 +59,7 @@ def calculate_error_rate(i):
         theta_hat = theta 
 
 
-        result = infer.pseido_inference(data=data, bandwidth1= 0.2, bandwidth2= 0.2, 
+        result = infer.pseido_inference(data=data, bandwidth1= 0.11, bandwidth2= 0.11, 
                                         points= points, beta_hat=beta_hat, theta_hat=theta_hat, b_time=5000)
 
         if np.all((result['scb_l'] <= true_eta) & (true_eta <= result['scb_u'])):
