@@ -43,8 +43,8 @@ def generate_data(n, m, beta, theta):
         return t
 
     # Define function for mu
-    def mu(t, x, y):
-        return 6 + beta_0 z / 5 + 1 /(1+ exp(t)) + exp(-t (\beta_0 z+3))/ (1+  exp(-t (\beta_0 z+3)) ) 
+    def mu(t, u):
+        return 6 + u/5 + 1 /(1+ np.exp(t)) + np.exp(-t (u+3))/ (1+  np.exp(-t (u+3)) ) 
 
     # Define function for epsilon
     def epsilon(t):
@@ -66,23 +66,24 @@ def generate_data(n, m, beta, theta):
         X2_i = np.random.uniform(0,1,1) * X2(time_points_i)
         X3_i = np.random.uniform(0,1,1) * X3(time_points_i)
 
-        X = np.column_stack((X1_i, X2_i, X3_i))
-        betaX = np.sum(np.dot(X, beta_0), axis= 1)
+
         Z1_i = np.random.normal(loc=1, scale=1, size=1) * Z1(time_points_i)
         Z2_i = np.random.normal(loc=1, scale=1, size=1) * Z2(time_points_i)
-        X_i = np.column_stack((X1_i, X2_i))
+        X_i = np.column_stack((X1_i, X2_i, X3_i))
         Z_i = np.column_stack((Z1_i, Z2_i))
         X_samples.append(X_i)
         Z_samples.append(Z_i)
 
+        betaX_i = np.dot(X_i, beta_0)
+
         # Calculate U and mu
-        U_i = np.dot(X_i, beta)
-        mu_i = mu(time_points_i, U_i)
+        U_i = np.column_stack((time_points_i, betaX_i))
+        mu_i = np.apply_along_axis(mu, 1, U_i)
 
         # Calculate Y
-        thetaZi = np.dot(Z_i, theta)
+        thetaZ_i = np.dot(Z_i, theta)
         e_i = np.random.normal(loc=0, scale=0.1, size=m_i) * epsilon(time_points_i)
-        Y_i = mu_i + thetaZi + e_i
+        Y_i = mu_i + thetaZ_i + e_i
         Y_samples.append(Y_i)
 
     return time_points, X_samples, Z_samples, Y_samples
