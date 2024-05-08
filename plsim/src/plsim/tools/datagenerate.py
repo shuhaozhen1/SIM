@@ -1,6 +1,8 @@
 import numpy as np
 
-
+# we adopt the link function from <FUNCTIONAL SINGLE INDEX MODELS FOR LONGITUDINAL DATA>
+# \mu(t, \beta_0 z) = 6 + \beta_0 z / 5 + 1 /(1+ exp(t)) + exp(-t (\beta_0 z+3))/ (1+  exp(-t (\beta_0 z+3)) ) 
+# For the linear part, we simply assign
 def generate_data(n, m, beta, theta):
     """
     Generates n sets of data for the partially linear single index model with functional data.
