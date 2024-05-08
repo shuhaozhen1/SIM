@@ -2,7 +2,8 @@ import numpy as np
 
 # we adopt the link function from <FUNCTIONAL SINGLE INDEX MODELS FOR LONGITUDINAL DATA>
 # \mu(t, \beta_0 z) = 6 + \beta_0 z / 5 + 1 /(1+ exp(t)) + exp(-t (\beta_0 z+3))/ (1+  exp(-t (\beta_0 z+3)) ) 
-# For the linear part, we simply assign
+# Let \beta_0 = (1/3, -2/3, 2/3) and \theta_0 = (2,1)
+
 def generate_data(n, m, beta, theta):
     """
     Generates n sets of data for the partially linear single index model with functional data.
@@ -20,22 +21,30 @@ def generate_data(n, m, beta, theta):
         - Z_samples: List of length n containing arrays of shape (m_i, q) containing the predictor variables Z(T_{ij}) for each realization i.
         - Y_samples: List of length n containing arrays of shape (m_i,) containing the response variable Y(T_{ij}) for each realization i.
     """
+
+    # Define beta and theta
+    beta_0 = np.array([1/3, -2/3, 2/3])
+    theta_0 = np.array([2,1])
+
     # Define functions for X and Z
     def X1(t):
         return np.sin( np.pi/ 2 * t)
 
     def X2(t):
-        return t
+        return np.cos( np.pi/ 2 * t)
+    
+    def X3(t):
+        return t**2
 
     def Z1(t):
-        return np.cos(2 * np.pi * t)
+        return -(t-3)**3 
 
     def Z2(t):
-        return np.sin(2 * np.pi * t)
+        return t
 
     # Define function for mu
-    def mu(x, y):
-        return  x + y ** 2 
+    def mu(t, x, y):
+        return 6 + beta_0 z / 5 + 1 /(1+ exp(t)) + exp(-t (\beta_0 z+3))/ (1+  exp(-t (\beta_0 z+3)) ) 
 
     # Define function for epsilon
     def epsilon(t):
@@ -55,6 +64,10 @@ def generate_data(n, m, beta, theta):
         # Generate m_i sets of predictor variables X(T_{ij}) and Z(T_{ij}) using known functions
         X1_i = np.random.uniform(0,1,1) * X1(time_points_i)
         X2_i = np.random.uniform(0,1,1) * X2(time_points_i)
+        X3_i = np.random.uniform(0,1,1) * X3(time_points_i)
+
+        X = np.column_stack((X1_i, X2_i, X3_i))
+        betaX = np.sum(np.dot(X, beta_0), axis= 1)
         Z1_i = np.random.normal(loc=1, scale=1, size=1) * Z1(time_points_i)
         Z2_i = np.random.normal(loc=1, scale=1, size=1) * Z2(time_points_i)
         X_i = np.column_stack((X1_i, X2_i))
