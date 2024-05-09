@@ -94,6 +94,6 @@ def generate_data(n, m):
 
     return time_points, X_samples, Z_samples, Y_samples
 
-time_points, X_samples, Z_samples, Y_samples = generate_data(10,5)
-print(Z_samples[6])
+time_points, X_samples, Z_samples, Y_samples = generate_data(100,5)
+
 
