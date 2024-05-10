@@ -222,7 +222,8 @@ def optimize_plsim_h_2d(data,   bandwidth1,bandwidth2, kernel_type= 'quartic', d
     # cons = ({'type': 'eq', 'fun': lambda params: np.linalg.norm(params[:px]) - 1})
     
     # define the initial values for beta and theta
-    beta_init = np.ones(px)/ np.sqrt(px)
+    # beta_init = np.ones(px)/ np.sqrt(px)
+    beta_init = np.array([1/3, -2/3, 2/3])
     theta_init = np.ones(pz)
 
     params_init = np.concatenate((beta_init, theta_init))
@@ -292,10 +293,17 @@ def optimize_plsim_h_2d(data,   bandwidth1,bandwidth2, kernel_type= 'quartic', d
 from datagenerate import *
 
 beta_0 = np.array([1/3, -2/3, 2/3])
+beta_1 = np.array([1/3, -2/3, 2/3]) + 0.01
+beta_2 = np.array([0.6651245, -0.73436453,  0.13534543])
 theta_0 = np.array([2,1])
 data = generate_data(200,5)
-beta_opt, theta_opt = optimize_plsim_h_2d(data, bandwidth1= 0.5, bandwidth2=0.5)
-loss = loss_plsim_2d(data, 0.15,  0.3, beta_0, theta_0)
-print(beta_opt)
-print(theta_opt)
+b1 = 0.1
+b2 = 0.2
+# beta_opt, theta_opt = optimize_plsim_h_2d(data, bandwidth1= 0.5, bandwidth2=0.5)
+loss0 = loss_plsim_2d(data, b1,  b2, beta_0, theta_0)
+loss1 = loss_plsim_2d(data, b1,  b2, beta_1, theta_0)
+loss2= loss_plsim_2d(data, b1,  b2, beta_2, theta_0)
+print(loss0)
+print(loss1)
+print(loss2)
 # print(beta_opt, theta_opt)
