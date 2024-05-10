@@ -91,5 +91,7 @@ def generate_data(n, m):
         e_i = np.random.normal(loc=0, scale=0.1, size=m_i) * epsilon(time_points_i)
         Y_i = mu_i + thetaZ_i + e_i
         Y_samples.append(Y_i)
+    
+    data = {'t': time_points, 'x': X_samples, 'z': Z_samples, 'y': Y_samples}
 
-    return time_points, X_samples, Z_samples, Y_samples
+    return data
