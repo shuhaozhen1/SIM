@@ -43,8 +43,11 @@ def generate_data(n, m):
         return t**2
 
     # Define function for mu
+    # def mu(t, u):
+    #     return 6 + u/5 + 1 /(1+ np.exp(t)) + np.exp(-t * (u+3))/ (1+  np.exp(-t * (u+3)) ) 
     def mu(t, u):
-        return 6 + u/5 + 1 /(1+ np.exp(t)) + np.exp(-t * (u+3))/ (1+  np.exp(-t * (u+3)) ) 
+        return t**2 + u**2
+
 
     # Define function for epsilon
     def epsilon(t):

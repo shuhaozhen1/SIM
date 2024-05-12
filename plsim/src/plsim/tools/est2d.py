@@ -10,10 +10,10 @@ def quartic_kernel_2d(x, y):
     return z
 
 
-# Define the local polynomial regression function
+# Define the local polynomial regression function for functional data
 def local_p_2d(data, bandwidth1, bandwidth2, xy0, mi = None, kernel_type='quartic', degree = 1):
     """
-    This function calculates the local polynomial regression in 2D.
+    This function calculates the local polynomial regression in 2D for Functional Data.
 
     Parameters:
     data (dic): A dictionary containing: 'x1' for the data in first argument, 'x2' for the second, 'y' for the response. Names are strictly required to be set as 'x1','x2','y'.
