@@ -88,7 +88,7 @@ def generate_data(n, m):
         for row in U_i:
             t, u = row
             result = mu(t, u)
-        mu_i.append(result)
+            mu_i.append(result)
         mu_i = np.array(mu_i)
 
         # Calculate Y

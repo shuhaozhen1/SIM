@@ -15,6 +15,7 @@ v = np.dot(z, theta)
 # print(u)
 
 to_est = np.column_stack((t,u))
-est = lp_fplsim(data, beta, theta, bandwidth1= 0.1, bandwidth2= 0.3, toest=to_est)
+est = lp_fplsim(data, beta, theta, bandwidth1= 0.2, bandwidth2= 0.2, toest=to_est ,degree= 0)
 print(est)
 print(np.sum(to_est**2, axis=1))
+print(np.array(est) - np.sum(to_est**2, axis=1))

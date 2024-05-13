@@ -56,7 +56,7 @@ def lp_fplsim(data, beta, theta, bandwidth1, bandwidth2, toest, kernel_type='qua
         u_design = np.vander(xbeta - xi2, degree + 1, increasing=True)[:, 1:]
         X = np.column_stack((t_design, u_design))
     
-        beta_hat_i = np.linalg.inv(X.T @ W @ X) @ X.T @ W @ y
+        beta_hat_i = np.linalg.inv(X.T @ W @ X) @ X.T @ W @ ytilde
         beta_hat.append(beta_hat_i)
     
     # # Reshape
