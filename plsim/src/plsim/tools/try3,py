@@ -1,16 +1,20 @@
 from datagenerate import generate_data
 import numpy as np
-from est2d import local_p_2d
+from est2d import lp_fplsim
 
-beta_0 = np.array([1/3, -2/3, 2/3])
-theta_0 = np.array([2,1])
+beta = np.array([1/3, 2/3, 2/3])
+theta = np.array([2,1])
 
 data = generate_data(100,5)
 t = np.concatenate(data['t'])
 x = np.concatenate(data['x'])
-u = np.dot(x, beta_0)
-print(u)
+y = np.concatenate(data['y'])
+z = np.concatenate(data['z'])
+u = np.dot(x, beta)
+v = np.dot(z, theta)
+# print(u)
 
 to_est = np.column_stack((t,u))
-est = local_p_2d(data, bandwidth1= 0.2, bandwidth2= 0.1, xy0=to_est)
+est = lp_fplsim(data, beta, theta, bandwidth1= 0.1, bandwidth2= 0.3, toest=to_est)
 print(est)
+print(np.sum(to_est**2, axis=1))

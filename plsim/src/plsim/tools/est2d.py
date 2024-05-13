@@ -11,7 +11,7 @@ def quartic_kernel_2d(x, y):
 
 
 # Define the local polynomial regression function for functional data
-def local_p_2d(data, bandwidth1, bandwidth2, xy0, mi = None, kernel_type='quartic', degree = 1):
+def lp_fplsim(data, beta, theta, bandwidth1, bandwidth2, toest, kernel_type='quartic', degree = 1):
     """
     This function calculates the local polynomial regression in 2D for Functional Data.
 
@@ -27,32 +27,34 @@ def local_p_2d(data, bandwidth1, bandwidth2, xy0, mi = None, kernel_type='quarti
     Returns:
     float: The estimated function value at the point xy0.
     """
-    # Your function implementation goes here
-    if mi.any() == None:
-        mi = np.array([len(vector) for vector in data['y']])
-    
+
     if kernel_type == 'quartic':
         kernel = quartic_kernel_2d
     else:
         raise ValueError('Unsupported kernel type')
+    
+    mi = data['mi']
+    t = np.concatenate(data['t'])
+    x = np.concatenate(data['x'])
+    z = np.concatenate(data['z'])
+    y = np.concatenate(data['y'])
 
+    xbeta = np.dot(x, beta)
+    ztheta = np.dot(z, theta)
 
+    ytilde = y - ztheta
     weights = np.repeat(mi, mi)
     
     # Compute the polynomial coefficients for each x0 value
     beta_hat = []
 
-    x1 = data['x1']
-    x2 = data['x2']
-    y = data['y']
-
-    for xi1, xi2 in xy0:
+    for xi1, xi2 in toest:
         # Construct the weight and design matrices
-        W = np.diag(kernel(np.abs(x1-xi1)/bandwidth1, np.abs(x2-xi2)/bandwidth2)
+        W = np.diag(kernel(np.abs(t-xi1)/bandwidth1, np.abs(xbeta-xi2)/bandwidth2)
                     /bandwidth1/bandwidth2/weights)
-        X1_design = np.vander(x1 - xi1, degree + 1, increasing=True)
-        X2_design = np.vander(x2 - xi2, degree + 1, increasing=True)[:, 1:]
-        X = np.column_stack((X1_design,X2_design))
+        t_design = np.vander(t - xi1, degree + 1, increasing=True)
+        u_design = np.vander(xbeta - xi2, degree + 1, increasing=True)[:, 1:]
+        X = np.column_stack((t_design, u_design))
     
         beta_hat_i = np.linalg.inv(X.T @ W @ X) @ X.T @ W @ y
         beta_hat.append(beta_hat_i)
@@ -222,14 +224,14 @@ def optimize_plsim_h_2d(data,   bandwidth1,bandwidth2, kernel_type= 'quartic', d
     # cons = ({'type': 'eq', 'fun': lambda params: np.linalg.norm(params[:px]) - 1})
     
     # define the initial values for beta and theta
-    # beta_init = np.ones(px)/ np.sqrt(px)
-    beta_init = np.array([1/3, -2/3, 2/3])
+    beta_init = np.ones(px)/ np.sqrt(px)
+    # beta_init = np.array([1/3, -2/3, 2/3])
     theta_init = np.ones(pz)
 
     params_init = np.concatenate((beta_init, theta_init))
 
     # minimize the objective function
-    res = minimize(objective, params_init, method='SLSQP', constraints=cons)
+    res = minimize(objective, params_init, method='SLSQP', constraints=cons, options={'ftol': 1e-6, 'disp': True})
 
     # extract the optimal values for beta and theta
     beta_opt = res.x[:px]
@@ -290,20 +292,20 @@ def optimize_plsim_h_2d(data,   bandwidth1,bandwidth2, kernel_type= 'quartic', d
 #     # return beta_opt, theta_opt, bandwidth1, bandwidth2
 #     return bandwidth1_opt, bandwidth2_opt, beta_opt, theta_opt
 
-from datagenerate import *
+# from datagenerate import *
 
-beta_0 = np.array([1/3, -2/3, 2/3])
-beta_1 = np.array([1/3, -2/3, 2/3]) + 0.01
-beta_2 = np.array([0.6651245, -0.73436453,  0.13534543])
-theta_0 = np.array([2,1])
-data = generate_data(200,5)
-b1 = 0.1
-b2 = 0.2
-# beta_opt, theta_opt = optimize_plsim_h_2d(data, bandwidth1= 0.5, bandwidth2=0.5)
-loss0 = loss_plsim_2d(data, b1,  b2, beta_0, theta_0)
-loss1 = loss_plsim_2d(data, b1,  b2, beta_1, theta_0)
-loss2= loss_plsim_2d(data, b1,  b2, beta_2, theta_0)
-print(loss0)
-print(loss1)
-print(loss2)
+# beta_0 = np.array([1/3, -2/3, 2/3])
+# beta_1 = np.array([1/3, -2/3, 2/3]) + 0.01
+# beta_2 = np.array([0.6651245, -0.73436453,  0.13534543])
+# theta_0 = np.array([2,1])
+# data = generate_data(200,5)
+# b1 = 0.1
+# b2 = 0.2
+# # beta_opt, theta_opt = optimize_plsim_h_2d(data, bandwidth1= 0.5, bandwidth2=0.5)
+# loss0 = loss_plsim_2d(data, b1,  b2, beta_0, theta_0)
+# loss1 = loss_plsim_2d(data, b1,  b2, beta_1, theta_0)
+# loss2= loss_plsim_2d(data, b1,  b2, beta_2, theta_0)
+# print(loss0)
+# print(loss1)
+# print(loss2)
 # print(beta_opt, theta_opt)

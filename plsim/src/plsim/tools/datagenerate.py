@@ -23,7 +23,7 @@ def generate_data(n, m):
     """
 
     # Define beta and theta
-    beta_0 = np.array([1/3, -2/3, 2/3])
+    beta_0 = np.array([1/3, 2/3, 2/3])
     theta_0 = np.array([2,1])
 
     # Define functions for X and Z
@@ -37,7 +37,7 @@ def generate_data(n, m):
         return 2*t*(1-t)
 
     def Z1(t):
-        return -(t-3)**3 
+        return 1 - t - t **2 
 
     def Z2(t):
         return t**2
@@ -58,6 +58,7 @@ def generate_data(n, m):
     X_samples = []
     Z_samples = []
     Y_samples = []
+    mi_samples = []
     for i in range(n):
         # Generate m_i sets of time points (T_{ij}) uniformly on [0,1] for each realization i
         m_i = np.random.randint(m - 2, m + 3)
@@ -76,6 +77,7 @@ def generate_data(n, m):
         Z_i = np.column_stack((Z1_i, Z2_i))
         X_samples.append(X_i)
         Z_samples.append(Z_i)
+        mi_samples.append(m_i)
 
         betaX_i = np.dot(X_i, beta_0)
 
@@ -95,6 +97,6 @@ def generate_data(n, m):
         Y_i = mu_i + thetaZ_i + e_i
         Y_samples.append(Y_i)
     
-    data = {'t': time_points, 'x': X_samples, 'z': Z_samples, 'y': Y_samples}
+    data = {'t': time_points, 'x': X_samples, 'z': Z_samples, 'y': Y_samples, 'mi': np.array(mi_samples)}
 
     return data
