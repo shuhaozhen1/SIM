@@ -20,6 +20,7 @@ def generate_data(n, m):
         - X_samples: List of length n containing arrays of shape (m_i, p) containing the predictor variables X(T_{ij}) for each realization i.
         - Z_samples: List of length n containing arrays of shape (m_i, q) containing the predictor variables Z(T_{ij}) for each realization i.
         - Y_samples: List of length n containing arrays of shape (m_i,) containing the response variable Y(T_{ij}) for each realization i.
+        - mi: array of the number of observations for each realization i.
     """
 
     # Define beta and theta

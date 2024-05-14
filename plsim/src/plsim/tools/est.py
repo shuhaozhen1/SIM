@@ -1,27 +1,18 @@
 import numpy as np
 
-# Define kernel functions
-def epanechnikov_kernel(x):
-    return np.where(np.abs(x) <= 1, 3/4 * (1 - x**2), 0)
+# Define kernel function
+def quartic_kernel(x):
+    return np.where(np.abs(x) <= 1, 15/16 * (1 - x**2)**2, 0)
 
-def uniform_kernel(x):
-    return np.where(np.abs(x) <= 1, 1, 0)
-
-def triangle_kernel(x):
-    return np.where(np.abs(x) <= 1, 1 - np.abs(x), 0)
 
 
 # Local polynomial estimation
-def local_polynomial_regression(data, kernel_type, bandwidth, degree, x0):
+def local_polynomial_regression(data, bandwidth, degree, x0, kernel_type='quartic'):
     x = data[:, 0]
     y = data[:, 1]
     
-    if kernel_type == 'epa':
-        kernel = epanechnikov_kernel
-    elif kernel_type == 'unif':
-        kernel = uniform_kernel
-    elif kernel_type == 'triangle':
-        kernel = triangle_kernel
+    if kernel_type == 'quartic':
+        kernel = quartic_kernel
     else:
         raise ValueError('Unsupported kernel type')
     
